@@ -1,0 +1,2 @@
+# websocket-emitter
+WebSocket emitter
