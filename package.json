@@ -19,6 +19,11 @@
     "emit",
     "event"
   ],
+  "files": [
+    "index.js",
+    "LICENSE",
+    "README.md"
+  ],
   "dependencies": {
     "events": "1.1.1"
   }
