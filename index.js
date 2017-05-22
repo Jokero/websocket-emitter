@@ -1,9 +1,11 @@
+'use strict';
+
 const EventEmitter = require('events');
 
 class WebSocketEmitter extends EventEmitter {
     /**
-     * @param {String}          url
-     * @param {String|String[]} [protocols]
+     * @param {string}          url
+     * @param {string|string[]} [protocols]
      *
      * @returns {Promise}
      */
@@ -24,7 +26,7 @@ class WebSocketEmitter extends EventEmitter {
 
             this._ws.onmessage = event => {
                 try {
-                    const response = this.parse(event.data);
+                    const response = this.deserialize(event.data);
                     if (response.event) {
                         this._emit(response.event, response.data);
                     }
@@ -36,8 +38,8 @@ class WebSocketEmitter extends EventEmitter {
     }
 
     /**
-     * @param {Number} [code]
-     * @param {String} [reason]
+     * @param {number} [code]
+     * @param {string} [reason]
      */
     disconnect(code, reason) {
         if (this._ws) {
@@ -46,7 +48,7 @@ class WebSocketEmitter extends EventEmitter {
     }
 
     /**
-     * @param {String} eventName
+     * @param {string} eventName
      * @param {*}      [data]
      */
     emit(eventName, data) {
@@ -54,27 +56,27 @@ class WebSocketEmitter extends EventEmitter {
             throw new Error('WebSocket connection must be opened');
         }
 
-        const message = this.stringify(eventName, data);
+        const message = this.serialize(eventName, data);
         this._ws.send(message);
     }
 
     /**
-     * @param {String} response
+     * @param {string} response
      *
      * @returns {Object}
      */
-    parse(response) {
+    deserialize(response) {
         const result = JSON.parse(response);
         return { event: result.event, data: result.data };
     }
 
     /**
-     * @param {String} eventName
+     * @param {string} eventName
      * @param {*}      data
      *
-     * @returns {String}
+     * @returns {string}
      */
-    stringify(eventName, data) {
+    serialize(eventName, data) {
         return JSON.stringify({ event: eventName, data: data });
     }
 
