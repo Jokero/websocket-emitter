@@ -2,6 +2,8 @@
 
 const EventEmitter = require('events');
 
+const READY_STATE_OPEN = 1;
+
 class WebSocketEmitter extends EventEmitter {
     /**
      * @param {string}          url
@@ -52,7 +54,7 @@ class WebSocketEmitter extends EventEmitter {
      * @param {*}      [data]
      */
     emit(eventName, data) {
-        if (!this._ws || this._ws.readyState !== 1 /* OPEN */) {
+        if (!this._ws || this._ws.readyState !== READY_STATE_OPEN) {
             throw new Error('WebSocket connection must be opened');
         }
 
