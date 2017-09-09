@@ -15,7 +15,10 @@ class WebSocketEmitter extends EventEmitter {
         return new Promise((resolve, reject) => {
             this._ws = new WebSocket(url, protocols);
 
-            this._ws.onopen = () => resolve();
+            this._ws.onopen = () => {
+                this._emit('open');
+                resolve();
+            };
 
             this._ws.onerror = event => {
                 this._emit('error', event);
@@ -32,8 +35,9 @@ class WebSocketEmitter extends EventEmitter {
                     if (response.event) {
                         this._emit(response.event, response.data);
                     }
+                    this._emit('message', response);
                 } catch (err) {
-                    this._emit('error', err);
+                    this._emit('message', event.data);
                 }
             };
         });
