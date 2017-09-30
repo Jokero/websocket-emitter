@@ -12,35 +12,25 @@ class WebSocketEmitter extends EventEmitter {
      * @returns {Promise}
      */
     connect(url, protocols) {
-        return new Promise((resolve, reject) => {
-            this._ws = new WebSocket(url, protocols);
+        this._options = { url, protocols };
+        return this._connect(url, protocols);
+    }
 
-            this._ws.onopen = () => {
-                this._emit('open');
-                resolve();
-            };
+    reconnect() {
+        if (this._ws && !this._isReconnecting) {
+            this._isReconnecting = true;
 
-            this._ws.onerror = event => {
-                this._emit('error', event);
-                reject(event);
-            };
+            this._ws.onerror = this._ws.onclose = this._ws.onmessage = () => {};
+            this._ws.close();
 
-            this._ws.onclose = event => {
-                this._emit('close', event);
-            };
+            const promise = this._connect(this._options.url, this._options.protocols);
 
-            this._ws.onmessage = event => {
-                try {
-                    const response = this.deserialize(event.data);
-                    if (response.event) {
-                        this._emit(response.event, response.data);
-                    }
-                    this._emit('message', response);
-                } catch (err) {
-                    this._emit('message', event.data);
-                }
-            };
-        });
+            promise
+                .catch(() => {})
+                .then(() => this._isReconnecting = false);
+
+            return promise;
+        }
     }
 
     /**
@@ -84,6 +74,38 @@ class WebSocketEmitter extends EventEmitter {
      */
     serialize(eventName, data) {
         return JSON.stringify({ event: eventName, data: data });
+    }
+
+    _connect(url, protocols) {
+        return new Promise((resolve, reject) => {
+            this._ws = new WebSocket(url, protocols);
+
+            this._ws.onopen = () => {
+                this._emit('open');
+                resolve();
+            };
+
+            this._ws.onerror = event => {
+                this._emit('error', event);
+                reject(event);
+            };
+
+            this._ws.onclose = event => {
+                this._emit('close', event);
+            };
+
+            this._ws.onmessage = event => {
+                try {
+                    const response = this.deserialize(event.data);
+                    if (response.event) {
+                        this._emit(response.event, response.data);
+                    }
+                    this._emit('message', response);
+                } catch (err) {
+                    this._emit('message', event.data);
+                }
+            };
+        });
     }
 
     _emit() {
