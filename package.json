@@ -21,7 +21,8 @@
   ],
   "main": "./lib/websocket-emitter.js",
   "files": [
-    "index.js",
+    "dist/",
+    "lib/",
     "LICENSE",
     "README.md"
   ],
