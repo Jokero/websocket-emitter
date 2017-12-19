@@ -5,6 +5,11 @@ const EventEmitter = require('events');
 const READY_STATE_OPEN = 1;
 
 class WebSocketEmitter extends EventEmitter {
+    constructor() {
+        super();
+        this._isReconnecting = false;
+    }
+
     /**
      * @param {string}          url
      * @param {string|string[]} [protocols]
