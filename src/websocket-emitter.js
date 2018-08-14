@@ -21,6 +21,9 @@ class WebSocketEmitter extends EventEmitter {
         return this._connect(url, protocols);
     }
 
+    /**
+     * @returns {Promise}
+     */
     reconnect() {
         if (this._ws && !this._isReconnecting) {
             this._isReconnecting = true;
@@ -29,13 +32,12 @@ class WebSocketEmitter extends EventEmitter {
             this._ws.close();
 
             const promise = this._connect(this._options.url, this._options.protocols);
+            promise.finally(() => this._isReconnecting = false);
 
-            promise
-                .catch(() => {})
-                .then(() => this._isReconnecting = false);
-
-            return promise;
+            return promise.then(() => ({ isReconnected: true }));
         }
+
+        return Promise.resolve({ isInProgress: true });
     }
 
     /**
