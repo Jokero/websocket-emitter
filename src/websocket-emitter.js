@@ -50,12 +50,19 @@ class WebSocketEmitter extends EventEmitter {
         }
     }
 
+    get isConnected() {
+        if (!this._ws) {
+            return false;
+        }
+        return this._ws.readyState === READY_STATE_OPEN;
+    }
+
     /**
      * @param {string} eventName
      * @param {*}      [data]
      */
     emit(eventName, data) {
-        if (!this._ws || this._ws.readyState !== READY_STATE_OPEN) {
+        if (!this.isConnected) {
             throw new Error('WebSocket connection must be opened');
         }
 
