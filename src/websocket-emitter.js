@@ -41,10 +41,10 @@ class WebSocketEmitter extends EventEmitter {
     }
 
     /**
-     * @param {number} [code=1005]
+     * @param {number} [code=1000]
      * @param {string} [reason='']
      */
-    disconnect(code = 1005, reason = '') {
+    disconnect(code = 1000, reason = '') {
         if (this._ws) {
             this._ws.close(code, reason);
         }

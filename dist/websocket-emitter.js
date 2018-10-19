@@ -69,14 +69,14 @@ var WebSocketEmitter = function (_EventEmitter) {
         }
 
         /**
-         * @param {number} [code=1005]
+         * @param {number} [code=1000]
          * @param {string} [reason='']
          */
 
     }, {
         key: 'disconnect',
         value: function disconnect() {
-            var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1005;
+            var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
             var reason = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
             if (this._ws) {
