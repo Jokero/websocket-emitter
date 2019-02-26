@@ -63,7 +63,7 @@ class WebSocketEmitter extends EventEmitter {
      */
     emit(eventName, data) {
         if (!this.isConnected) {
-            throw new Error('WebSocket connection must be opened');
+            throw new Error('WebSocket connection must be open');
         }
 
         const message = this.serialize(eventName, data);
