@@ -2,7 +2,10 @@
 
 const EventEmitter = require('events');
 
-const READY_STATE_OPEN = 1;
+const READY_STATE = {
+    OPEN: 1,
+    CLOSED: 3
+};
 
 class WebSocketEmitter extends EventEmitter {
     constructor() {
@@ -27,8 +30,6 @@ class WebSocketEmitter extends EventEmitter {
     reconnect() {
         if (this._ws && !this._isReconnecting) {
             this._isReconnecting = true;
-
-            this._ws.onerror = this._ws.onclose = this._ws.onmessage = () => {};
             this._ws.close();
 
             const promise = this._connect(this._options.url, this._options.protocols);
@@ -43,18 +44,26 @@ class WebSocketEmitter extends EventEmitter {
     /**
      * @param {number} [code=1000]
      * @param {string} [reason='']
+     *
+     * @returns {Promise}
      */
     disconnect(code = 1000, reason = '') {
-        if (this._ws) {
+        return new Promise((resolve, reject) => {
+            if (!this._ws || this._ws.readyState === READY_STATE.CLOSED) {
+                return resolve();
+            }
+
+            this._ws.addEventListener('close', () => resolve());
+            this._ws.addEventListener('error', err => reject(err));
             this._ws.close(code, reason);
-        }
+        });
     }
 
     get isConnected() {
         if (!this._ws) {
             return false;
         }
-        return this._ws.readyState === READY_STATE_OPEN;
+        return this._ws.readyState === READY_STATE.OPEN;
     }
 
     /**
@@ -94,19 +103,19 @@ class WebSocketEmitter extends EventEmitter {
         return new Promise((resolve, reject) => {
             this._ws = new WebSocket(url, protocols);
 
-            this._ws.onopen = () => {
+            this._ws.addEventListener('open', () => {
                 this._emit('open');
                 resolve();
-            };
+            });
 
-            this._ws.onerror = event => {
+            this._ws.addEventListener('error', event => {
                 this._emit('error', event);
                 reject(event);
-            };
+            });
 
-            this._ws.onclose = event => {
+            this._ws.addEventListener('close', event => {
                 this._emit('close', event);
-            };
+            });
 
             this._ws.onmessage = event => {
                 try {
