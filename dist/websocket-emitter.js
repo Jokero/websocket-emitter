@@ -112,7 +112,17 @@ var WebSocketEmitter = function (_EventEmitter) {
             }
 
             var message = this.serialize(eventName, data);
-            this._ws.send(message);
+            this.send(message);
+        }
+
+        /**
+         * @param {*} data
+         */
+
+    }, {
+        key: 'send',
+        value: function send(data) {
+            this._ws.send(data);
         }
 
         /**

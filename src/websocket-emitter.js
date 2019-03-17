@@ -76,7 +76,14 @@ class WebSocketEmitter extends EventEmitter {
         }
 
         const message = this.serialize(eventName, data);
-        this._ws.send(message);
+        this.send(message);
+    }
+
+    /**
+     * @param {*} data
+     */
+    send(data) {
+        this._ws.send(data);
     }
 
     /**
