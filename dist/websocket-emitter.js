@@ -11,7 +11,10 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 var EventEmitter = require('events');
 
-var READY_STATE_OPEN = 1;
+var READY_STATE = {
+    OPEN: 1,
+    CLOSED: 3
+};
 
 var WebSocketEmitter = function (_EventEmitter) {
     _inherits(WebSocketEmitter, _EventEmitter);
@@ -51,8 +54,6 @@ var WebSocketEmitter = function (_EventEmitter) {
 
             if (this._ws && !this._isReconnecting) {
                 this._isReconnecting = true;
-
-                this._ws.onerror = this._ws.onclose = this._ws.onmessage = function () {};
                 this._ws.close();
 
                 var promise = this._connect(this._options.url, this._options.protocols);
@@ -71,17 +72,31 @@ var WebSocketEmitter = function (_EventEmitter) {
         /**
          * @param {number} [code=1000]
          * @param {string} [reason='']
+         *
+         * @returns {Promise}
          */
 
     }, {
         key: 'disconnect',
         value: function disconnect() {
+            var _this3 = this;
+
             var code = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1000;
             var reason = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
 
-            if (this._ws) {
-                this._ws.close(code, reason);
-            }
+            return new Promise(function (resolve, reject) {
+                if (!_this3._ws || _this3._ws.readyState === READY_STATE.CLOSED) {
+                    return resolve();
+                }
+
+                _this3._ws.addEventListener('close', function () {
+                    return resolve();
+                });
+                _this3._ws.addEventListener('error', function (err) {
+                    return reject(err);
+                });
+                _this3._ws.close(code, reason);
+            });
         }
     }, {
         key: 'emit',
@@ -128,34 +143,34 @@ var WebSocketEmitter = function (_EventEmitter) {
     }, {
         key: '_connect',
         value: function _connect(url, protocols) {
-            var _this3 = this;
+            var _this4 = this;
 
             return new Promise(function (resolve, reject) {
-                _this3._ws = new WebSocket(url, protocols);
+                _this4._ws = new WebSocket(url, protocols);
 
-                _this3._ws.onopen = function () {
-                    _this3._emit('open');
+                _this4._ws.addEventListener('open', function () {
+                    _this4._emit('open');
                     resolve();
-                };
+                });
 
-                _this3._ws.onerror = function (event) {
-                    _this3._emit('error', event);
+                _this4._ws.addEventListener('error', function (event) {
+                    _this4._emit('error', event);
                     reject(event);
-                };
+                });
 
-                _this3._ws.onclose = function (event) {
-                    _this3._emit('close', event);
-                };
+                _this4._ws.addEventListener('close', function (event) {
+                    _this4._emit('close', event);
+                });
 
-                _this3._ws.onmessage = function (event) {
+                _this4._ws.onmessage = function (event) {
                     try {
-                        var response = _this3.deserialize(event.data);
+                        var response = _this4.deserialize(event.data);
                         if (response.event) {
-                            _this3._emit(response.event, response.data);
+                            _this4._emit(response.event, response.data);
                         }
-                        _this3._emit('message', response);
+                        _this4._emit('message', response);
                     } catch (err) {
-                        _this3._emit('message', event.data);
+                        _this4._emit('message', event.data);
                     }
                 };
             });
@@ -171,7 +186,7 @@ var WebSocketEmitter = function (_EventEmitter) {
             if (!this._ws) {
                 return false;
             }
-            return this._ws.readyState === READY_STATE_OPEN;
+            return this._ws.readyState === READY_STATE.OPEN;
         }
     }]);
 
