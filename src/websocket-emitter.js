@@ -124,7 +124,7 @@ class WebSocketEmitter extends EventEmitter {
                 this._emit('close', event);
             });
 
-            this._ws.onmessage = event => {
+            this._ws.addEventListener('message', event => {
                 try {
                     const response = this.deserialize(event.data);
                     if (response.event) {
@@ -134,7 +134,7 @@ class WebSocketEmitter extends EventEmitter {
                 } catch (err) {
                     this._emit('message', event.data);
                 }
-            };
+            });
         });
     }
 

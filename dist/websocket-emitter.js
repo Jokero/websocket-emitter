@@ -172,7 +172,7 @@ var WebSocketEmitter = function (_EventEmitter) {
                     _this4._emit('close', event);
                 });
 
-                _this4._ws.onmessage = function (event) {
+                _this4._ws.addEventListener('message', function (event) {
                     try {
                         var response = _this4.deserialize(event.data);
                         if (response.event) {
@@ -182,7 +182,7 @@ var WebSocketEmitter = function (_EventEmitter) {
                     } catch (err) {
                         _this4._emit('message', event.data);
                     }
-                };
+                });
             });
         }
     }, {
